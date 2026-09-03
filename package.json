@@ -1,0 +1,29 @@
+{
+  "name": "tracedesk",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "node scripts/generate-favicon.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "1.39.0",
+    "next": "16.3.4",
+    "openai": "7.9.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.2",
+    "webmcp-types": "0.1.5"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}
