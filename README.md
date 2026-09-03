@@ -2,39 +2,79 @@
 
 **Agent-native incident response for humans and AI agents.**
 
-TraceDesk is a WebMCP-powered incident response workspace built for the OpenAI WebMCP Challenge. Humans investigate through an operations dashboard while browser agents use structured tools against the same incident state.
+TraceDesk is a WebMCP-powered incident response workspace built for the OpenAI WebMCP Challenge.
 
-TraceDesk can also run one bounded OpenAI API analysis over incident evidence, cache the result locally, propose a remediation plan, and place consequential actions behind an explicit human approval gate.
+Humans investigate incidents through an operations dashboard while AI agents use structured WebMCP tools against the same incident state. Agents can inspect evidence, form hypotheses, update the shared workspace, and propose remediation while consequential actions remain under human control.
+
+## Live App
+
+**https://tracedesk.vercel.app**
 
 ## Demo
 
 ▶️ **[Watch the 2-minute TraceDesk demo on YouTube](https://www.youtube.com/watch?v=00k_DR66Ymc)**
 
-> **Research/demo software.** TraceDesk does not connect to production infrastructure and does not execute deployments, rollbacks, configuration changes, restarts, credential changes, or traffic shifts.
+> **Research/demo software.** TraceDesk does not connect to production infrastructure and does not execute deployments, rollbacks, restarts, credential changes, configuration changes, or traffic shifts.
 
 ---
 
 ## Why WebMCP
 
-A traditional browser agent may need to visually interpret buttons, tables, tabs, and forms.
+Traditional browser agents may need to visually interpret buttons, tables, tabs, and page structure before they can interact with an application.
 
-TraceDesk instead exposes incident-response capabilities directly through WebMCP.
+TraceDesk exposes incident-response capabilities directly through WebMCP.
 
-The agent can:
+Instead of guessing how to navigate the interface, an agent can use structured tools to:
 
-- discover available incidents
+- discover incidents
 - inspect the active incident
 - check service health
 - search logs
 - review deployments and configuration changes
-- read the relevant runbook
+- read runbooks
 - analyze incident evidence
-- add a root-cause hypothesis
-- add an investigation event to the timeline
-- generate a customer-facing update
+- add hypotheses
+- add timeline events
+- generate customer-facing updates
 - request human approval for remediation
 
-The underlying WebMCP tools are:
+The agent and the human work against the same incident state.
+
+---
+
+## Human + Agent Collaboration
+
+TraceDesk is designed around a clear boundary:
+
+```text
+INCIDENT
+   ↓
+Agent investigates
+   ↓
+Agent gathers evidence
+   ↓
+Agent forms a hypothesis
+   ↓
+Agent updates the shared workspace
+   ↓
+Agent proposes remediation
+   ↓
+Human approves or rejects
+   ↓
+NO PRODUCTION EXECUTION
+```
+
+Agents have autonomy to investigate.
+
+They do not have autonomy to make production changes.
+
+This allows AI agents to participate meaningfully in incident response without removing the human from consequential decisions.
+
+---
+
+## WebMCP Tools
+
+TraceDesk exposes the following tools:
 
 ```text
 list_incidents
@@ -51,65 +91,50 @@ get_customer_update
 request_remediation_approval
 ```
 
-This allows an agent to gather evidence, reason about an outage, and collaborate inside the same workspace as the human without guessing how to navigate the UI.
-
----
-
-## Human + Agent Collaboration
-
-TraceDesk is designed around a simple boundary:
+### Investigation tools
 
 ```text
-Agent investigates
-        ↓
-Agent gathers evidence
-        ↓
-Agent forms a hypothesis
-        ↓
-Agent updates the shared workspace
-        ↓
-Agent proposes remediation
-        ↓
-Human approves or rejects
+list_incidents
+get_active_incident
+get_service_health
+search_logs
+get_recent_changes
+get_runbook
+get_customer_update
 ```
 
-The agent has autonomy to investigate.
+### Analysis
 
-It does **not** have autonomy to execute production changes.
+```text
+analyze_incident
+```
 
-High-impact remediation remains explicitly human-gated.
+### Shared-workspace actions
 
----
-
-## Stack
-
-- TypeScript
-- Next.js 16
-- React 19
-- WebMCP Imperative API
-- OpenAI Responses API
-- Structured Outputs via JSON Schema
-- Plain CSS
-- Vercel
-- GitHub
+```text
+select_incident
+add_hypothesis
+add_timeline_event
+request_remediation_approval
+```
 
 ---
 
 ## WebMCP Implementation
 
-TraceDesk registers structured tools through:
+TraceDesk registers its tools using the WebMCP imperative API:
 
 ```typescript
 document.modelContext.registerTool(...)
 ```
 
-The application also includes a compatibility fallback for older preview environments exposing:
+A compatibility fallback is also included for preview environments exposing:
 
 ```typescript
 navigator.modelContext
 ```
 
-When the WebMCP API is detected and TraceDesk successfully registers its tools, the application displays:
+When WebMCP is available and the tools are registered successfully, TraceDesk displays:
 
 ```text
 WebMCP ready
@@ -117,38 +142,69 @@ WebMCP ready
 
 ---
 
-## WebMCP Tool Design
+## What an Agent Can Do
 
-### Read-only investigation tools
+A WebMCP-capable agent can investigate an incident through a sequence such as:
 
 ```text
-list_incidents
 get_active_incident
+        ↓
 get_service_health
+        ↓
 search_logs
+        ↓
 get_recent_changes
+        ↓
 get_runbook
-get_customer_update
-```
-
-### AI analysis
-
-```text
+        ↓
 analyze_incident
-```
-
-### Shared-workspace mutations
-
-```text
-select_incident
+        ↓
 add_hypothesis
+        ↓
 add_timeline_event
+        ↓
 request_remediation_approval
 ```
 
-### Deliberately absent production tools
+The exact sequence is chosen by the agent.
 
-TraceDesk does **not** implement tools such as:
+TraceDesk does not require the agent to infer its capabilities from visual page elements.
+
+---
+
+## Human Approval Gate
+
+TraceDesk deliberately separates investigation from execution.
+
+An agent can identify a likely root cause and propose a remediation plan through:
+
+```text
+request_remediation_approval
+```
+
+The proposal becomes visible in the shared workspace.
+
+A human can then:
+
+```text
+Approve
+```
+
+or:
+
+```text
+Reject
+```
+
+Approval records the human decision inside TraceDesk.
+
+It does **not** execute an infrastructure action.
+
+---
+
+## Deliberately Absent Production Tools
+
+TraceDesk does not expose tools such as:
 
 ```text
 rollback_deployment
@@ -163,51 +219,45 @@ execute_shell
 
 This is intentional.
 
-The agent may investigate and propose.
+The agent can investigate and propose.
 
-The human remains responsible for consequential actions.
+The human remains responsible for consequential production actions.
 
 ---
 
-## Built-in Incidents
+## Built-In Incidents
 
-TraceDesk includes three deterministic investigation environments.
+TraceDesk includes three deterministic incident environments.
 
 ### INC-2041
 
-```text
-Checkout failures after payment deploy
-```
+**Checkout failures after payment deploy**
 
 ### INC-2098
 
-```text
-Authentication latency spike
-```
+**Authentication latency spike**
 
 ### INC-2130
 
-```text
-API 500s on document export
-```
+**API 500s on document export**
 
-These provide reliable investigation environments while still requiring the AI or external browser agent to inspect evidence and reason about the incident.
+Each incident contains operational evidence that can be investigated through the dashboard and WebMCP tools.
 
 ---
 
 ## Import Previously Unseen Evidence
 
-TraceDesk is not limited to the three built-in incidents.
+TraceDesk is not limited to its built-in incidents.
 
-Select:
+Users can select:
 
 ```text
 Import evidence
 ```
 
-and paste incident evidence such as logs, deployment notes, or other operational context.
+and provide evidence from a different incident.
 
-Example:
+For example:
 
 ```text
 12:02 INFO api-service deploy v3.4.1 complete
@@ -217,204 +267,137 @@ Example:
 12:06 ERROR api-service startup failed stage=database_init
 ```
 
-TraceDesk creates a deterministic local incident from the supplied evidence.
+TraceDesk creates a local incident from the supplied evidence.
 
 Imported incidents do not contain a predetermined root cause.
 
-The evidence can then be investigated through the TraceDesk interface, its bounded OpenAI analysis capability, or by an external WebMCP-capable agent.
+The evidence can then be investigated by a WebMCP-capable browser agent or by TraceDesk's bounded built-in AI analysis.
 
 ---
 
 ## Example Agent Prompt
 
-A WebMCP-capable agent can be given:
+A WebMCP-capable agent can be asked:
 
 ```text
 Investigate the active incident using TraceDesk's WebMCP tools. Inspect service health, search the most relevant logs, review recent deployments and configuration changes, and read the runbook. Determine the most likely root cause, add a hypothesis and timeline event to the shared workspace, then request human approval for the safest remediation. Do not claim to execute production changes.
 ```
 
-The agent chooses its own exact investigation sequence, but a representative flow is:
+This demonstrates the full collaboration loop:
 
 ```text
-get_active_incident
-        ↓
-get_service_health
-        ↓
-search_logs
-        ↓
-get_recent_changes
-        ↓
-get_runbook
-        ↓
-analyze_incident
-        ↓
-add_hypothesis
-        ↓
-add_timeline_event
-        ↓
-request_remediation_approval
+Read evidence
+     ↓
+Reason
+     ↓
+Update workspace
+     ↓
+Propose remediation
+     ↓
+Human approval
 ```
 
 ---
 
-## Bounded OpenAI Analysis
+## Built-In AI Analysis
 
-TraceDesk also includes an optional server-side incident-analysis capability using the OpenAI Responses API.
+TraceDesk also includes an optional server-side incident analysis capability using the OpenAI Responses API.
 
-A successful fresh analysis performs:
+A fresh built-in analysis performs one bounded model request over the supplied incident evidence and returns structured data including:
 
-```text
-1 OpenAI Responses API request
-```
-
-The response contains structured incident analysis including:
-
-- summary
+- incident summary
 - likely root cause
 - confidence
-- confidence band
 - supporting evidence
 - remediation steps
 - human-approval requirements
 - customer-facing update
 - caveats
 
-The built-in AI capability is separate from the external WebMCP browser agent.
+This built-in analysis is separate from the external WebMCP browser agent.
 
-A browser agent can reason directly over TraceDesk's structured WebMCP tools, while the built-in analysis endpoint provides an additional bounded analysis path.
+The external agent can investigate through WebMCP directly, while the built-in analysis provides an additional evidence-analysis path inside TraceDesk.
 
 ---
 
-## API Safety and Cost Controls
+## AI Safety and Cost Controls
 
 TraceDesk deliberately avoids autonomous model loops.
 
-The application includes:
+The built-in analysis path includes:
 
-- server-side OpenAI credentials only
-- no browser-visible OpenAI API key
-- one model call per fresh built-in analysis
-- browser `localStorage` caching after success
-- same-incident in-flight request deduplication
-- server cooldown
-- rolling-window request limits
-- daily per-client request limits
-- per-instance global circuit breaker
-- input clipping
+- server-side OpenAI credentials
+- no browser-visible API key
+- one model request per fresh analysis
+- structured JSON output
+- bounded output size
+- request cooldowns
+- rolling request limits
+- daily per-client limits
 - payload-size limits
-- structured output schema
-- bounded output tokens
-- low reasoning effort
-- SDK timeout
-- limited retry behavior
-- cross-site browser request rejection
-- no model tool-call loop
+- input clipping
+- request deduplication
+- local caching after successful analysis
+- SDK timeout and limited retry behavior
 - no infrastructure execution capability
 
-The serverless in-memory limiter is defense-in-depth and may reset when serverless instances change.
-
----
-
-## Cache Behavior
-
-After a successful built-in AI analysis, TraceDesk caches the result in:
-
-```text
-localStorage
-```
-
-The cache key is based on the incident ID.
-
-Selecting:
-
-```text
-Reset workspace
-```
-
-clears the visible collaborative workspace but intentionally does not delete the successful AI-analysis cache.
-
-This allows an incident to be revisited without automatically creating another API request.
+Successful analysis results are cached locally so revisiting the same incident does not automatically trigger another model request.
 
 ---
 
 ## Architecture
 
 ```text
-                         ┌────────────────────┐
-                         │      GitHub        │
-                         │   Public source    │
-                         └─────────┬──────────┘
-                                   │
-                                   │ push
-                                   ▼
-                         ┌────────────────────┐
-                         │      Vercel        │
-                         │   Next.js app      │
-                         └─────────┬──────────┘
-                                   │
-                    ┌──────────────┴──────────────────┐
-                    │                                 │
-                    ▼                                 ▼
-        ┌─────────────────────┐          ┌─────────────────────┐
-        │ Browser / React UI  │          │ /api/analyze        │
-        │                     │          │ server route        │
-        │ Incident state      │          │                     │
-        │ Logs                │          │ private API key     │
-        │ Hypotheses          │          └──────────┬──────────┘
-        │ Timeline            │                     │
-        │ Approval gate       │                     ▼
-        └──────────┬──────────┘          ┌─────────────────────┐
-                   │                     │ OpenAI Responses API│
-                   │                     │ bounded response    │
-                   │                     └─────────────────────┘
-                   │
-                   │ WebMCP
-                   ▼
-        ┌─────────────────────┐
-        │ Browser AI agent    │
-        │                     │
-        │ Structured tools    │
-        │ not DOM guessing    │
-        └─────────────────────┘
+                          ┌────────────────────┐
+                          │       GitHub       │
+                          │    Public source   │
+                          └─────────┬──────────┘
+                                    │
+                                    ▼
+                          ┌────────────────────┐
+                          │       Vercel       │
+                          │     Next.js app    │
+                          └─────────┬──────────┘
+                                    │
+                    ┌───────────────┴───────────────┐
+                    │                               │
+                    ▼                               ▼
+         ┌─────────────────────┐        ┌─────────────────────┐
+         │ Browser / React UI  │        │    /api/analyze     │
+         │                     │        │    server route     │
+         │ Incident state      │        │                     │
+         │ Logs                │        │ Private API key     │
+         │ Hypotheses          │        └──────────┬──────────┘
+         │ Timeline            │                   │
+         │ Approval gate       │                   ▼
+         └──────────┬──────────┘        ┌─────────────────────┐
+                    │                   │ OpenAI Responses API│
+                    │                   │  bounded analysis   │
+                    │                   └─────────────────────┘
+                    │
+                    │ WebMCP
+                    ▼
+         ┌─────────────────────┐
+         │ Browser AI Agent    │
+         │                     │
+         │ Structured tools    │
+         │ Shared app state    │
+         └─────────────────────┘
 ```
 
 ---
 
-## Safety Model
+## Stack
 
-```text
-READ
-get_active_incident
-search_logs
-get_recent_changes
-get_service_health
-get_runbook
-
-        ↓
-
-REASON
-analyze_incident
-
-        ↓
-
-COLLABORATE
-add_hypothesis
-add_timeline_event
-
-        ↓
-
-PROPOSE
-request_remediation_approval
-
-        ↓
-
-HUMAN
-Approve / Reject
-
-        ↓
-
-NO PRODUCTION EXECUTION
-```
+- TypeScript
+- Next.js 16
+- React 19
+- WebMCP Imperative API
+- OpenAI Responses API
+- JSON Schema structured outputs
+- Plain CSS
+- Vercel
+- GitHub
 
 ---
 
@@ -457,7 +440,7 @@ tracedesk/
 
 ### Requirements
 
-- Node.js 20.9+
+- Node.js 20+
 - npm
 
 Install dependencies:
@@ -466,17 +449,17 @@ Install dependencies:
 npm install
 ```
 
-Create the local environment file:
+Create a local environment file:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Add your server-side OpenAI configuration:
+Configure the server-side OpenAI API:
 
 ```bash
 OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL=gpt-5.6-luna
+OPENAI_MODEL=your-openai-model
 
 TRACEDESK_RATE_WINDOW_MINUTES=15
 TRACEDESK_RATE_MAX_REQUESTS=6
@@ -484,25 +467,25 @@ TRACEDESK_DAILY_MAX_REQUESTS=20
 TRACEDESK_COOLDOWN_SECONDS=12
 ```
 
-Never expose the key using:
+Do not expose the OpenAI key using:
 
 ```text
 NEXT_PUBLIC_OPENAI_API_KEY
 ```
 
-Never commit:
+Do not commit:
 
 ```text
 .env.local
 ```
 
-Start development:
+Start the application:
 
 ```bash
 npm run dev
 ```
 
-Open:
+Then open:
 
 ```text
 http://localhost:3000
@@ -512,40 +495,38 @@ http://localhost:3000
 
 ## Validate
 
-Before deployment:
+Run:
 
 ```bash
 npm run typecheck
 npm run build
 ```
 
-Both commands should complete successfully.
+Both commands should complete successfully before deployment.
 
 ---
 
 ## Deployment
 
-TraceDesk is designed for deployment on Vercel.
+TraceDesk is deployed as a Next.js application on Vercel.
 
-Required server-side environment variables:
-
-```text
-OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL=gpt-5.6-luna
-```
-
-Recommended abuse-control variables:
+The built-in AI endpoint uses server-side environment variables:
 
 ```text
-TRACEDESK_RATE_WINDOW_MINUTES=15
-TRACEDESK_RATE_MAX_REQUESTS=6
-TRACEDESK_DAILY_MAX_REQUESTS=20
-TRACEDESK_COOLDOWN_SECONDS=12
+OPENAI_API_KEY
+OPENAI_MODEL
 ```
 
-The OpenAI API key remains on the server.
+Optional rate-control configuration:
 
-Architecture:
+```text
+TRACEDESK_RATE_WINDOW_MINUTES
+TRACEDESK_RATE_MAX_REQUESTS
+TRACEDESK_DAILY_MAX_REQUESTS
+TRACEDESK_COOLDOWN_SECONDS
+```
+
+The OpenAI API key remains server-side.
 
 ```text
 Browser
@@ -559,27 +540,23 @@ Private OPENAI_API_KEY
 OpenAI Responses API
 ```
 
-Not:
-
-```text
-Browser
-   ↓
-Exposed OpenAI API key
-```
-
 ---
 
 ## Testing WebMCP
 
-Open the deployed application over HTTPS using a WebMCP-capable environment such as ChatGPT's in-app browser or a compatible WebMCP-enabled Chrome environment.
+Open the deployed application using ChatGPT's in-app browser or another compatible WebMCP-enabled browser environment.
 
-Confirm the status indicator reads:
+The production URL is:
+
+**https://tracedesk.vercel.app**
+
+Confirm the TraceDesk status indicator displays:
 
 ```text
 WebMCP ready
 ```
 
-The registered tools can then be discovered and used by the browser agent.
+A compatible browser agent can then discover and use TraceDesk's registered WebMCP tools.
 
 ---
 
