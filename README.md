@@ -6,6 +6,10 @@ TraceDesk is a WebMCP-powered incident response workspace built for the OpenAI W
 
 TraceDesk can also run one bounded OpenAI API analysis over incident evidence, cache the result locally, propose a remediation plan, and place consequential actions behind an explicit human approval gate.
 
+## Demo Video
+
+▶️ **[Watch the 2-minute TraceDesk demo on YouTube](https://www.youtube.com/watch?v=00k_DR66Ymc)**
+
 > Research/demo software. TraceDesk does not connect to production infrastructure and does not execute deployments, rollbacks, configuration changes, restarts, credential changes, or traffic shifts.
 
 ## Why WebMCP
@@ -763,9 +767,9 @@ AI incident response where humans and agents investigate outages together throug
                          │   Next.js app      │
                          └─────────┬──────────┘
                                    │
-                   ┌───────────────┴─────────────────┐
-                   │                                 │
-                   ▼                                 ▼
+                    ┌───────────────┴─────────────────┐
+                    │                                 │
+                    ▼                                 ▼
         ┌─────────────────────┐          ┌─────────────────────┐
         │ Browser / React UI  │          │ /api/analyze        │
         │                     │          │ server route        │
