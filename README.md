@@ -1,4 +1,4 @@
-# TraceDesk
+# TraceDesk (Discontinued)
 
 **Agent-native incident response for humans and AI agents.**
 
